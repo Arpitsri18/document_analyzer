@@ -3,8 +3,13 @@ DocuMind AI backend.
 
 Implements the endpoints defined in the Technical Requirements Document:
   POST /api/analyze  -> summarize | key_points | rewrite (streamed)
-  POST /api/ask      -> question answering grounded in the document (streamed)
-  GET  /api/health   -> health check for load balancer / AWS App Runner / Render
+  POST /api/ask       -> question answering grounded in the document (streamed)
+  GET  /api/health    -> health check for load balancer / AWS App Runner / Render
+
+Security notes (per TRD section 6):
+  - GEMINI_API_KEY is read from the environment only, never hardcoded.
+  - The key never appears in any response body, log line, or frontend asset.
+  - Uploaded files are validated for type and size before any Gemini call.
 """
 
 import io
@@ -13,23 +18,21 @@ from pathlib import Path
 from typing import Optional
 
 import google.generativeai as genai
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pypdf import PdfReader
 
-# ✅ Load dotenv with explicit path
-from dotenv import load_dotenv
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
-
-# ✅ Correct import path
 from app.prompts import build_prompt
 
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
-MAX_DOCUMENT_CHARS = 30_000       # safe context window
+# Load variables from a local .env file if one exists (development only).
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
 
-# ✅ Read Gemini API key
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB, per PRD success metrics
+MAX_DOCUMENT_CHARS = 30_000  # keep prompts within a safe context window
+
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise RuntimeError(
@@ -39,8 +42,6 @@ if not GEMINI_API_KEY:
     )
 
 genai.configure(api_key=GEMINI_API_KEY)
-
-# ✅ Correct default model
 MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 
 app = FastAPI(title="DocuMind AI")
@@ -52,6 +53,7 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -115,7 +117,7 @@ async def get_document_text(file: Optional[UploadFile], text: Optional[str]) -> 
 
 
 async def stream_gemini(prompt: str):
-    """Yield text chunks from Gemini as they are generated."""
+    """Yield text chunks from Gemini as they are generated (TRD section 3.2)."""
     model = genai.GenerativeModel(MODEL_NAME)
     try:
         response = await model.generate_content_async(prompt, stream=True)
@@ -124,6 +126,7 @@ async def stream_gemini(prompt: str):
                 yield chunk.text
     except Exception as exc:
         yield f"\n\n[The AI service couldn't complete this request. Please try again. ({type(exc).__name__})]"
+
 
 # ---------------------------------------------------------------------------
 # Routes
@@ -163,8 +166,9 @@ async def ask(
     prompt = build_prompt("ask", document_text, question=question)
     return StreamingResponse(stream_gemini(prompt), media_type="text/plain")
 
+
 # ---------------------------------------------------------------------------
-# Static frontend
+# Static frontend (mounted last so /api/* routes take priority)
 # ---------------------------------------------------------------------------
 
 frontend_path = Path(__file__).resolve().parent.parent / "static"
