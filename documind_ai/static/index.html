@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocuMind AI — Document Analyzer</title>
+  <meta name="description" content="Upload a PDF or paste text and get an AI summary, key points, answers, or a rewrite." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">DM</span>
+      <span class="brand-name">DocuMind AI</span>
+    </div>
+    <p class="tagline">Turn any document into a summary, key points, or answers.</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel input-panel" aria-label="Document input">
+      <div class="upload-zone" id="uploadZone" tabindex="0" role="button" aria-label="Upload a PDF, or press Enter to choose a file">
+        <input type="file" id="fileInput" accept="application/pdf" hidden />
+        <p class="upload-title">Drop a PDF here</p>
+        <p class="upload-sub">or click to browse — 10 MB max</p>
+        <p class="file-name" id="fileName" aria-live="polite"></p>
+      </div>
+
+      <div class="or-divider" role="separator"><span>or paste text</span></div>
+
+      <label for="textInput" class="visually-hidden">Paste document text</label>
+      <textarea id="textInput" placeholder="Paste your text here instead of uploading a file..."></textarea>
+
+      <div class="actions" id="actionBar" role="group" aria-label="Choose an action">
+        <button class="action-btn" data-action="summarize" type="button">Summarize</button>
+        <button class="action-btn" data-action="key_points" type="button">Key Points</button>
+        <button class="action-btn" data-action="ask" type="button">Ask a Question</button>
+        <button class="action-btn" data-action="rewrite" type="button">Rewrite</button>
+      </div>
+
+      <div class="sub-control" id="lengthControl" hidden>
+        <label for="lengthSelect">Summary length</label>
+        <select id="lengthSelect">
+          <option value="short">Short</option>
+          <option value="medium" selected>Medium</option>
+          <option value="detailed">Detailed</option>
+        </select>
+      </div>
+
+      <div class="sub-control" id="toneControl" hidden>
+        <label for="toneSelect">Rewrite tone</label>
+        <select id="toneSelect">
+          <option value="formal">Formal</option>
+          <option value="clear and simple" selected>Simple &amp; clear</option>
+          <option value="persuasive">Persuasive</option>
+          <option value="casual">Casual</option>
+        </select>
+      </div>
+
+      <div class="sub-control" id="questionControl" hidden>
+        <label for="questionInput">Your question</label>
+        <input type="text" id="questionInput" placeholder="e.g. What's the refund policy?" />
+      </div>
+
+      <button class="run-btn" id="runBtn" disabled>Choose an action above</button>
+      <p class="error-banner" id="errorBanner" role="alert" hidden></p>
+    </section>
+
+    <section class="panel result-panel" aria-label="AI response">
+      <div class="result-header">
+        <h2>Result</h2>
+        <div class="result-actions" id="resultActions" hidden>
+          <button id="copyBtn" type="button">Copy</button>
+          <button id="downloadBtn" type="button">Download</button>
+        </div>
+      </div>
+      <div class="result-body" id="resultBody" aria-live="polite">
+        <p class="placeholder">Upload a document or paste text, then choose an action to see the AI's response here.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ✅ Correct entry point -->
+  <script src="/app.js"></script>
+</body>
+</html>
