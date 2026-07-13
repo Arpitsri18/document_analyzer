@@ -1,8 +1,3 @@
-// src/app.js
-
-// ✅ Import CSS (Vite bundles automatically)
-import './style.css';
-
 (() => {
   "use strict";
 
@@ -36,6 +31,7 @@ import './style.css';
   let lastResultText = "";
 
   // ---------------- Upload zone ----------------
+
   uploadZone.addEventListener("click", () => fileInput.click());
   uploadZone.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -93,6 +89,7 @@ import './style.css';
   });
 
   // ---------------- Action selection ----------------
+
   actionBar.addEventListener("click", (e) => {
     const btn = e.target.closest(".action-btn");
     if (!btn) return;
@@ -134,6 +131,7 @@ import './style.css';
   }
 
   // ---------------- Errors ----------------
+
   function showError(message) {
     errorBanner.textContent = message;
     errorBanner.hidden = false;
@@ -145,6 +143,7 @@ import './style.css';
   }
 
   // ---------------- Run ----------------
+
   runBtn.addEventListener("click", runAction);
 
   async function runAction() {
@@ -182,7 +181,7 @@ import './style.css';
         try {
           const data = await response.json();
           detail = data.detail || detail;
-        } catch (_) {}
+        } catch (_) { /* ignore parse failure, use default message */ }
         throw new Error(detail);
       }
 
@@ -215,6 +214,7 @@ import './style.css';
   }
 
   // ---------------- Copy / Download ----------------
+
   copyBtn.addEventListener("click", async () => {
     if (!lastResultText) return;
     try {

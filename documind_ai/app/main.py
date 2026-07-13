@@ -5,11 +5,6 @@ Implements the endpoints defined in the Technical Requirements Document:
   POST /api/analyze  -> summarize | key_points | rewrite (streamed)
   POST /api/ask      -> question answering grounded in the document (streamed)
   GET  /api/health   -> health check for load balancer / AWS App Runner / Render
-
-Security notes (per TRD section 6):
-  - GEMINI_API_KEY is read from the environment only, never hardcoded.
-  - The key never appears in any response body, log line, or frontend asset.
-  - Uploaded files are validated for type and size before any Gemini call.
 """
 
 import io
@@ -28,7 +23,8 @@ from pypdf import PdfReader
 from dotenv import load_dotenv
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
 
-from documind_ai.app.prompts import build_prompt
+# ✅ Correct import path
+from app.prompts import build_prompt
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 MAX_DOCUMENT_CHARS = 30_000       # safe context window
@@ -44,8 +40,8 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# ✅ Default model
-MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+# ✅ Correct default model
+MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 
 app = FastAPI(title="DocuMind AI")
 
